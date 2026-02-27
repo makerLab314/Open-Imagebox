@@ -1,6 +1,6 @@
 """
 UI module for Open-Imagebox.
-Provides touchscreen interface using PyQt5.
+Provides touchscreen interface using PyQt6.
 """
 
 from .main_window import MainWindow

@@ -2,7 +2,7 @@
 gphoto2>=2.3.0
 
 # UI Framework
-PyQt5>=5.15.0
+PyQt6>=6.4.0
 
 # Web Server
 Flask>=2.0.0

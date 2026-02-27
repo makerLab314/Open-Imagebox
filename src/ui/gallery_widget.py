@@ -7,28 +7,28 @@ import logging
 from typing import List
 
 try:
-    from PyQt5.QtWidgets import (
+    from PyQt6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QScrollArea,
         QPushButton, QLabel, QGridLayout, QFrame
     )
-    from PyQt5.QtCore import Qt, pyqtSignal
-    from PyQt5.QtGui import QPixmap
-    PYQT5_AVAILABLE = True
+    from PyQt6.QtCore import Qt, pyqtSignal
+    from PyQt6.QtGui import QPixmap
+    PYQT6_AVAILABLE = True
 except ImportError:
-    PYQT5_AVAILABLE = False
+    PYQT6_AVAILABLE = False
     QWidget = object
 
 
 logger = logging.getLogger(__name__)
 
 
-class PhotoThumbnail(QFrame if PYQT5_AVAILABLE else object):
+class PhotoThumbnail(QFrame if PYQT6_AVAILABLE else object):
     """Clickable photo thumbnail."""
     
-    clicked = pyqtSignal(str) if PYQT5_AVAILABLE else None
+    clicked = pyqtSignal(str) if PYQT6_AVAILABLE else None
     
     def __init__(self, photo_path: str, parent=None):
-        if not PYQT5_AVAILABLE:
+        if not PYQT6_AVAILABLE:
             return
         
         super().__init__(parent)
@@ -54,11 +54,11 @@ class PhotoThumbnail(QFrame if PYQT5_AVAILABLE else object):
         
         # Thumbnail image
         self._image_label = QLabel()
-        self._image_label.setAlignment(Qt.AlignCenter)
+        self._image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._load_thumbnail()
         layout.addWidget(self._image_label)
         
-        self.setCursor(Qt.PointingHandCursor)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
     
     def _load_thumbnail(self):
         """Load and display thumbnail."""
@@ -66,8 +66,8 @@ class PhotoThumbnail(QFrame if PYQT5_AVAILABLE else object):
             pixmap = QPixmap(self.photo_path)
             scaled = pixmap.scaled(
                 130, 130,
-                Qt.KeepAspectRatio,
-                Qt.SmoothTransformation
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
             )
             self._image_label.setPixmap(scaled)
         else:
@@ -86,17 +86,17 @@ class GalleryWidget(QWidget):
     """
     
     # Signal when user wants to take more photos
-    back_to_camera = pyqtSignal() if PYQT5_AVAILABLE else None
+    back_to_camera = pyqtSignal() if PYQT6_AVAILABLE else None
     
     # Signal when user wants to export/finish
-    export_requested = pyqtSignal() if PYQT5_AVAILABLE else None
+    export_requested = pyqtSignal() if PYQT6_AVAILABLE else None
     
     # Signal when a photo is selected for fullscreen view
-    photo_selected = pyqtSignal(str) if PYQT5_AVAILABLE else None
+    photo_selected = pyqtSignal(str) if PYQT6_AVAILABLE else None
     
     def __init__(self, parent=None):
-        if not PYQT5_AVAILABLE:
-            logger.error("PyQt5 not available")
+        if not PYQT6_AVAILABLE:
+            logger.error("PyQt6 not available")
             return
         
         super().__init__(parent)
@@ -116,13 +116,13 @@ class GalleryWidget(QWidget):
             font-weight: bold;
             color: white;
         """)
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
         
         # Photo count
         self._count_label = QLabel("0 Fotos aufgenommen")
         self._count_label.setStyleSheet("font-size: 18px; color: #888;")
-        self._count_label.setAlignment(Qt.AlignCenter)
+        self._count_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._count_label)
         
         # Scroll area for thumbnails
