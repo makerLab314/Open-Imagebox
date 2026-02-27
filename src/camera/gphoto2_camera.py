@@ -121,8 +121,10 @@ class GPhoto2Camera(CameraBase):
         
         try:
             # Capture preview image
-            camera_file = self._camera.capture_preview(self._context)
-            
+            # python-gphoto2 >= 2.3 requires an explicit CameraFile argument
+            camera_file = gp.CameraFile()
+            self._camera.capture_preview(camera_file, self._context)
+
             # Get file data
             file_data = camera_file.get_data_and_size()
             
@@ -138,7 +140,7 @@ class GPhoto2Camera(CameraBase):
         except gp.GPhoto2Error as e:
             logger.debug(f"Preview capture failed: {e}")
         except Exception as e:
-            logger.error(f"Error getting preview frame: {e}")
+            logger.debug(f"Error getting preview frame: {e}")
         
         return None
     
