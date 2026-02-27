@@ -27,8 +27,18 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, PROJECT_DIR)
 
-from src.utils import load_config, setup_logging
-from src.camera import CameraManager
+try:
+    from src.utils import load_config, setup_logging
+    from src.camera import CameraManager
+except ImportError as e:
+    print(f"Error: Failed to import required modules: {e}")
+    print("Make sure you are running this script from the project root directory")
+    print("and that all dependencies are installed.")
+    print("\nTry:")
+    print("  cd /path/to/Open-Imagebox")
+    print("  source venv/bin/activate")
+    print("  python3 scripts/trigger_capture.py")
+    sys.exit(1)
 
 
 logger = logging.getLogger(__name__)
@@ -135,7 +145,9 @@ def main():
     # Determine output directory
     output_dir = args.output
     if output_dir is None:
-        output_dir = config.get('storage', {}).get('photo_directory', '/tmp/photos')
+        # Use config value or fall back to temp directory
+        default_dir = os.path.join(os.path.expanduser('~'), 'photos')
+        output_dir = config.get('storage', {}).get('photo_directory', default_dir)
     
     os.makedirs(output_dir, exist_ok=True)
     logger.info(f"Output directory: {output_dir}")
