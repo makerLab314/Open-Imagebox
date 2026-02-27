@@ -6,14 +6,14 @@ import logging
 from typing import Optional
 
 try:
-    from PyQt5.QtWidgets import (
+    from PyQt6.QtWidgets import (
         QMainWindow, QWidget, QStackedWidget, QVBoxLayout,
         QApplication, QMessageBox
     )
-    from PyQt5.QtCore import Qt, QTimer, pyqtSlot
-    PYQT5_AVAILABLE = True
+    from PyQt6.QtCore import Qt, QTimer, pyqtSlot
+    PYQT6_AVAILABLE = True
 except ImportError:
-    PYQT5_AVAILABLE = False
+    PYQT6_AVAILABLE = False
     QMainWindow = object
 
 from .preview_widget import PreviewWidget
@@ -36,8 +36,8 @@ class MainWindow(QMainWindow):
     VIEW_EXPORT = 2
     
     def __init__(self, config: dict = None):
-        if not PYQT5_AVAILABLE:
-            logger.error("PyQt5 not available")
+        if not PYQT6_AVAILABLE:
+            logger.error("PyQt6 not available")
             return
         
         super().__init__()
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         # Set fullscreen or windowed
         if self.display_config.get('fullscreen', True):
             self.showFullScreen()
-            self.setCursor(Qt.BlankCursor)  # Hide cursor in fullscreen
+            self.setCursor(Qt.CursorShape.BlankCursor)  # Hide cursor in fullscreen
         else:
             resolution = self.display_config.get('resolution', [1024, 600])
             self.resize(resolution[0], resolution[1])
@@ -281,24 +281,24 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         """Handle key press events."""
         # Escape to exit fullscreen
-        if event.key() == Qt.Key_Escape:
+        if event.key() == Qt.Key.Key_Escape:
             if self.isFullScreen():
                 self.showNormal()
-                self.setCursor(Qt.ArrowCursor)
+                self.setCursor(Qt.CursorShape.ArrowCursor)
             else:
                 self.close()
         
         # F11 to toggle fullscreen
-        elif event.key() == Qt.Key_F11:
+        elif event.key() == Qt.Key.Key_F11:
             if self.isFullScreen():
                 self.showNormal()
-                self.setCursor(Qt.ArrowCursor)
+                self.setCursor(Qt.CursorShape.ArrowCursor)
             else:
                 self.showFullScreen()
-                self.setCursor(Qt.BlankCursor)
+                self.setCursor(Qt.CursorShape.BlankCursor)
         
         # Space or Enter to capture
-        elif event.key() in (Qt.Key_Space, Qt.Key_Return):
+        elif event.key() in (Qt.Key.Key_Space, Qt.Key.Key_Return):
             if self._stack.currentIndex() == self.VIEW_PREVIEW:
                 self._on_capture_requested()
         

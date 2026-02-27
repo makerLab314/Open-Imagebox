@@ -6,15 +6,15 @@ import logging
 from typing import Optional
 
 try:
-    from PyQt5.QtWidgets import (
+    from PyQt6.QtWidgets import (
         QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
         QFrame, QSizePolicy
     )
-    from PyQt5.QtCore import Qt, pyqtSignal
-    from PyQt5.QtGui import QPixmap, QImage
-    PYQT5_AVAILABLE = True
+    from PyQt6.QtCore import Qt, pyqtSignal
+    from PyQt6.QtGui import QPixmap, QImage
+    PYQT6_AVAILABLE = True
 except ImportError:
-    PYQT5_AVAILABLE = False
+    PYQT6_AVAILABLE = False
     QWidget = object
 
 try:
@@ -36,11 +36,11 @@ class ExportWidget(QWidget):
     """
     
     # Signal when user wants to start new session
-    new_session_requested = pyqtSignal() if PYQT5_AVAILABLE else None
+    new_session_requested = pyqtSignal() if PYQT6_AVAILABLE else None
     
     def __init__(self, parent=None):
-        if not PYQT5_AVAILABLE:
-            logger.error("PyQt5 not available")
+        if not PYQT6_AVAILABLE:
+            logger.error("PyQt6 not available")
             return
         
         super().__init__(parent)
@@ -62,7 +62,7 @@ class ExportWidget(QWidget):
             font-weight: bold;
             color: white;
         """)
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
         
         # Instructions
@@ -70,7 +70,7 @@ class ExportWidget(QWidget):
             "Scanne den QR-Code mit deinem Handy um die Fotos herunterzuladen"
         )
         instructions.setStyleSheet("font-size: 20px; color: #AAA;")
-        instructions.setAlignment(Qt.AlignCenter)
+        instructions.setAlignment(Qt.AlignmentFlag.AlignCenter)
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
         
@@ -136,7 +136,7 @@ class ExportWidget(QWidget):
             }
         """)
         self._new_session_button.clicked.connect(self._on_new_session)
-        layout.addWidget(self._new_session_button, alignment=Qt.AlignCenter)
+        layout.addWidget(self._new_session_button, alignment=Qt.AlignmentFlag.AlignCenter)
     
     def _create_qr_frame(self, title: str) -> QFrame:
         """Create a QR code display frame."""
@@ -148,11 +148,11 @@ class ExportWidget(QWidget):
                 padding: 20px;
             }
         """)
-        frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         frame.setMaximumSize(350, 400)
         
         layout = QVBoxLayout(frame)
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Title
         title_label = QLabel(title)
@@ -161,14 +161,14 @@ class ExportWidget(QWidget):
             font-weight: bold;
             color: #333;
         """)
-        title_label.setAlignment(Qt.AlignCenter)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
         
         # QR image
         qr_label = QLabel()
         qr_label.setObjectName("qr_image")
         qr_label.setFixedSize(250, 250)
-        qr_label.setAlignment(Qt.AlignCenter)
+        qr_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         qr_label.setStyleSheet("background-color: #EEE; border-radius: 10px;")
         layout.addWidget(qr_label)
         
@@ -267,7 +267,7 @@ class ExportWidget(QWidget):
             qimage.loadFromData(buffer.read())
             
             pixmap = QPixmap.fromImage(qimage)
-            return pixmap.scaled(size, size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            return pixmap.scaled(size, size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             
         except Exception as e:
             logger.error(f"Failed to generate QR code: {e}")
