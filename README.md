@@ -134,6 +134,36 @@ Edit `settings/config.json` to customize:
    - Download photos via the web interface
    - Or access photos via OneDrive link
 
+### Manual Trigger (Development Mode)
+
+If you don't have the hardware trigger button and countdown LEDs yet, you can use the manual trigger script:
+
+```bash
+# Activate virtual environment first
+source venv/bin/activate
+
+# Single capture with countdown
+python3 scripts/trigger_capture.py
+
+# Loop mode - keep capturing on Enter key press
+python3 scripts/trigger_capture.py --loop
+
+# Demo mode (no actual camera required)
+python3 scripts/trigger_capture.py --demo
+
+# Custom output directory and countdown
+python3 scripts/trigger_capture.py --output ~/my_photos --countdown 5
+
+# Debug mode for troubleshooting
+python3 scripts/trigger_capture.py --debug
+```
+
+The manual trigger provides:
+- Terminal-based countdown display
+- Support for both single and loop (continuous) capture modes
+- Demo mode for testing without camera hardware
+- Custom output directory and countdown settings
+
 ## Hardware Controller Protocol
 
 The Arduino controller communicates via serial (115200 baud):
@@ -167,7 +197,8 @@ Open-Imagebox/
 │   └── config.json          # User configuration
 ├── scripts/
 │   ├── install.sh           # Installation script
-│   └── setup_hotspot.sh     # WiFi hotspot setup
+│   ├── setup_hotspot.sh     # WiFi hotspot setup
+│   └── trigger_capture.py   # Manual capture trigger (development)
 ├── docs/                    # Documentation
 └── requirements.txt         # Python dependencies
 ```

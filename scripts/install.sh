@@ -43,7 +43,7 @@ sudo apt-get install -y \
     libzbar0 \
     libjpeg-dev \
     libopenjp2-7 \
-    libtiff5
+    libtiff-dev
 
 # Create virtual environment
 echo ""
