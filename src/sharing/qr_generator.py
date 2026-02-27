@@ -3,7 +3,7 @@ QR code generator for WiFi connection and photo sharing.
 """
 
 import logging
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any
 import io
 
 try:
@@ -12,6 +12,7 @@ try:
     QRCODE_AVAILABLE = True
 except ImportError:
     QRCODE_AVAILABLE = False
+    Image = None
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class QRGenerator:
                          "Install with: pip install qrcode[pil]")
     
     def generate_wifi_qr(self, ssid: str, password: str, 
-                        security: str = "WPA") -> Optional[Image.Image]:
+                        security: str = "WPA") -> Optional[Any]:
         """
         Generate a QR code for WiFi connection.
         
@@ -49,7 +50,7 @@ class QRGenerator:
         
         return self._generate_qr(wifi_string)
     
-    def generate_url_qr(self, url: str) -> Optional[Image.Image]:
+    def generate_url_qr(self, url: str) -> Optional[Any]:
         """
         Generate a QR code for a URL.
         
@@ -65,7 +66,7 @@ class QRGenerator:
         return self._generate_qr(url)
     
     def _generate_qr(self, data: str, 
-                     size: Tuple[int, int] = (300, 300)) -> Optional[Image.Image]:
+                     size: Tuple[int, int] = (300, 300)) -> Optional[Any]:
         """
         Generate a QR code image.
         

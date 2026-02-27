@@ -7,8 +7,14 @@ import os
 import time
 import tempfile
 import logging
-from typing import Optional, Tuple
-import numpy as np
+from typing import Optional, Tuple, Any
+
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    np = None
+    NUMPY_AVAILABLE = False
 
 try:
     import gphoto2 as gp
@@ -96,7 +102,7 @@ class GPhoto2Camera(CameraBase):
         """Check if camera is connected."""
         return self._connected and self._camera is not None
     
-    def get_preview_frame(self) -> Optional[np.ndarray]:
+    def get_preview_frame(self) -> Optional[Any]:
         """
         Get a single preview frame from the camera.
         Uses the camera's live view functionality.
@@ -104,8 +110,8 @@ class GPhoto2Camera(CameraBase):
         if not self.is_connected():
             return None
         
-        if not CV2_AVAILABLE:
-            logger.warning("OpenCV not available for preview processing")
+        if not CV2_AVAILABLE or not NUMPY_AVAILABLE:
+            logger.warning("OpenCV or NumPy not available for preview processing")
             return None
         
         # Rate limiting for preview

@@ -4,8 +4,14 @@ Inspired by self-o-mat's camera interface design.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple
-import numpy as np
+from typing import Optional, Tuple, Any
+
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    np = None
+    NUMPY_AVAILABLE = False
 
 
 class CameraBase(ABC):
@@ -27,7 +33,7 @@ class CameraBase(ABC):
         pass
     
     @abstractmethod
-    def get_preview_frame(self) -> Optional[np.ndarray]:
+    def get_preview_frame(self) -> Optional[Any]:
         """Get a single preview frame from the camera."""
         pass
     

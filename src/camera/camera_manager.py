@@ -3,8 +3,12 @@ Camera manager for handling camera connections and operations.
 """
 
 import logging
-from typing import Optional
-import numpy as np
+from typing import Optional, Any
+
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 from .camera_base import CameraBase
 from .gphoto2_camera import GPhoto2Camera
@@ -57,7 +61,7 @@ class CameraManager:
             self._camera.disconnect()
             self._camera = None
     
-    def get_preview_frame(self) -> Optional[np.ndarray]:
+    def get_preview_frame(self) -> Optional[Any]:
         """
         Get a preview frame from the camera.
         
