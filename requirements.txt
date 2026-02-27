@@ -1,0 +1,28 @@
+# Camera Control
+gphoto2>=2.3.0
+
+# UI Framework
+PyQt5>=5.15.0
+
+# Web Server
+Flask>=2.0.0
+Flask-CORS>=3.0.0
+Werkzeug>=2.0.0
+
+# QR Code Generation
+qrcode[pil]>=7.0
+Pillow>=9.0.0
+
+# Serial Communication (Arduino)
+pyserial>=3.5
+
+# OneDrive Integration
+msal>=1.20.0
+requests>=2.28.0
+
+# Image Processing
+opencv-python>=4.5.0
+numpy>=1.21.0
+
+# Utilities
+python-dotenv>=0.19.0
