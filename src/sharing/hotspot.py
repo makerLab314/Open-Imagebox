@@ -85,7 +85,16 @@ class HotspotManager:
             ], capture_output=True)
             
             if result.returncode != 0:
-                logger.error(f"Failed to start hostapd: {result.stderr.decode()}")
+                stderr = result.stderr.decode()
+                if 'masked' in stderr.lower():
+                    logger.warning(
+                        "hostapd.service is masked. The hotspot cannot be started. "
+                        "The photo booth is still accessible via the existing WiFi "
+                        "connection. To enable hotspot, unmask and configure hostapd: "
+                        "'sudo systemctl unmask hostapd'"
+                    )
+                else:
+                    logger.error(f"Failed to start hostapd: {stderr}")
                 return False
             
             result = subprocess.run([

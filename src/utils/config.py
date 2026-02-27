@@ -39,7 +39,7 @@ DEFAULT_CONFIG = {
         "idle_color": [0, 100, 255]
     },
     "sharing": {
-        "hotspot_enabled": True,
+        "hotspot_enabled": False,
         "hotspot_ssid": "PhotoBooth",
         "hotspot_password": "photos123",
         "hotspot_interface": "wlan0",
