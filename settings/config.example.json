@@ -1,0 +1,52 @@
+{
+    "camera": {
+        "type": "gphoto2",
+        "preview_fps": 15,
+        "capture_delay_ms": 100,
+        "auto_focus": true
+    },
+    "display": {
+        "fullscreen": true,
+        "resolution": [1024, 600],
+        "show_countdown": true
+    },
+    "controller": {
+        "enabled": true,
+        "serial_port": "/dev/ttyUSB0",
+        "baud_rate": 115200,
+        "countdown_seconds": 3,
+        "flash_duration_ms": 100
+    },
+    "led": {
+        "enabled": true,
+        "num_pixels": 24,
+        "brightness": 255,
+        "countdown_color": [255, 165, 0],
+        "flash_color": [255, 255, 255],
+        "idle_color": [0, 100, 255]
+    },
+    "sharing": {
+        "hotspot_enabled": true,
+        "hotspot_ssid": "PhotoBooth",
+        "hotspot_password": "photos123",
+        "hotspot_interface": "wlan0",
+        "web_port": 8080,
+        "web_host": "0.0.0.0",
+        "onedrive_enabled": false,
+        "onedrive_client_id": "",
+        "onedrive_folder": "PhotoBooth"
+    },
+    "storage": {
+        "photo_directory": "/home/pi/photos",
+        "session_directory": "/home/pi/sessions",
+        "keep_originals": true,
+        "jpeg_quality": 95
+    },
+    "ui": {
+        "theme": "dark",
+        "language": "de",
+        "idle_timeout_seconds": 60,
+        "show_gallery": true,
+        "max_photos_per_session": 10
+    }
+}
