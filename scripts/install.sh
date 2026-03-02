@@ -121,6 +121,22 @@ pip install -r requirements.txt || {
     exit 1
 }
 
+# Verify critical imports work inside the venv
+info "Überprüfe kritische Python-Pakete / Verifying critical Python packages..."
+IMPORT_ERRORS=0
+for pkg in PyQt5 flask cv2; do
+    if ! "$PROJECT_DIR/venv/bin/python" -c "import $pkg" 2>/dev/null; then
+        warn "Konnte '$pkg' nicht importieren / Could not import '$pkg'"
+        IMPORT_ERRORS=$((IMPORT_ERRORS + 1))
+    else
+        info "  ✓ $pkg"
+    fi
+done
+if [ "$IMPORT_ERRORS" -gt 0 ]; then
+    warn "$IMPORT_ERRORS Paket(en) nicht gefunden. Prüfe die Installation."
+    warn "$IMPORT_ERRORS package(s) not importable. Check the installation."
+fi
+
 # ─── Step 6: Create Directories ──────────────────────────────────────
 step "[6/8] Verzeichnisse erstellen / Creating directories..."
 mkdir -p "$HOME_DIR/photos"
@@ -160,6 +176,8 @@ WorkingDirectory=$PROJECT_DIR
 Environment=DISPLAY=:0
 Environment=XAUTHORITY=$HOME_DIR/.Xauthority
 Environment=QT_QPA_PLATFORM=xcb
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONPATH=$PROJECT_DIR
 ExecStartPre=/bin/bash -c 'pkill -f gvfs-gphoto2-volume-monitor || true'
 ExecStartPre=/bin/bash -c 'pkill -f gvfsd-gphoto2 || true'
 ExecStart=$PROJECT_DIR/venv/bin/python -m src.main
