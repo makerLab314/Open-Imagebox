@@ -39,7 +39,7 @@ DEFAULT_CONFIG = {
         "idle_color": [0, 100, 255]
     },
     "sharing": {
-        "hotspot_enabled": False,
+        "hotspot_enabled": True,
         "hotspot_ssid": "PhotoBooth",
         "hotspot_password": "photos123",
         "hotspot_interface": "wlan0",
@@ -50,8 +50,8 @@ DEFAULT_CONFIG = {
         "onedrive_folder": "PhotoBooth"
     },
     "storage": {
-        "photo_directory": "/home/pi/photos",
-        "session_directory": "/home/pi/sessions",
+        "photo_directory": "~/photos",
+        "session_directory": "~/sessions",
         "keep_originals": True,
         "jpeg_quality": 95
     },
@@ -119,6 +119,12 @@ def load_config(config_path: Optional[str] = None) -> dict:
     else:
         logger.info(f"Config file not found: {config_path}, using defaults")
     
+    # Expand ~ in storage paths
+    storage = config.get('storage', {})
+    for key in ('photo_directory', 'session_directory'):
+        if key in storage and '~' in storage[key]:
+            storage[key] = os.path.expanduser(storage[key])
+
     return config
 
 

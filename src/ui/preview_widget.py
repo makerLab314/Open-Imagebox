@@ -186,11 +186,50 @@ class PreviewWidget(QWidget):
         if self.capture_requested:
             self.capture_requested.emit()
     
-    def set_no_camera_text(self, text: str = "Keine Kamera verbunden") -> None:
+    def set_no_camera_text(self, text: str = None) -> None:
         """Show text when no camera is connected."""
+        if text is None:
+            text = (
+                "Keine Kamera verbunden\n\n"
+                "Bitte Kamera per USB anschließen\n"
+                "und Software neu starten."
+            )
         self._preview_label.setText(text)
         self._preview_label.setStyleSheet("""
             background-color: #333;
             color: white;
             font-size: 24px;
+        """)
+    
+    def show_error(self, text: str) -> None:
+        """
+        Briefly show an error message on the preview.
+        
+        Args:
+            text: Error message to display
+        """
+        self._countdown_label.setText(f"⚠️ {text}")
+        self._countdown_label.setStyleSheet("""
+            QLabel {
+                color: #FF5252;
+                font-size: 28px;
+                font-weight: bold;
+                background-color: rgba(0, 0, 0, 180);
+                padding: 20px;
+                border-radius: 10px;
+            }
+        """)
+        self._countdown_label.setVisible(True)
+        QTimer.singleShot(3000, self._hide_error)
+    
+    def _hide_error(self) -> None:
+        """Hide the error message."""
+        self._countdown_label.setVisible(False)
+        self._countdown_label.setStyleSheet("""
+            QLabel {
+                color: white;
+                font-size: 200px;
+                font-weight: bold;
+                background-color: transparent;
+            }
         """)

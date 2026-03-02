@@ -50,10 +50,10 @@ class ExportWidget(QWidget):
         self._setup_ui()
     
     def _setup_ui(self):
-        """Setup export UI."""
+        """Setup export UI with clear step-by-step instructions."""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(30, 30, 30, 30)
-        layout.setSpacing(20)
+        layout.setContentsMargins(30, 20, 30, 20)
+        layout.setSpacing(15)
         
         # Title
         title = QLabel("📤 Fotos herunterladen")
@@ -65,26 +65,34 @@ class ExportWidget(QWidget):
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
         
-        # Instructions
+        # Step-by-step instructions
         instructions = QLabel(
-            "Scanne den QR-Code mit deinem Handy um die Fotos herunterzuladen"
+            "So bekommst du deine Fotos aufs Handy:"
         )
-        instructions.setStyleSheet("font-size: 20px; color: #AAA;")
+        instructions.setStyleSheet("font-size: 20px; color: #CCC;")
         instructions.setAlignment(Qt.AlignCenter)
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
         
-        # QR codes container
+        # QR codes container with numbered steps
         qr_layout = QHBoxLayout()
-        qr_layout.setSpacing(40)
+        qr_layout.setSpacing(30)
         
-        # WiFi QR code
-        self._wifi_frame = self._create_qr_frame("📶 WiFi verbinden")
+        # Step 1: WiFi QR code
+        self._wifi_frame = self._create_qr_frame(
+            "Schritt 1: WiFi verbinden",
+            "📶",
+            "Scanne diesen QR-Code\nmit deiner Kamera-App\num dich mit dem\nWiFi zu verbinden."
+        )
         self._wifi_qr_label = self._wifi_frame.findChild(QLabel, "qr_image")
         qr_layout.addWidget(self._wifi_frame)
         
-        # Download QR code
-        self._download_frame = self._create_qr_frame("📱 Fotos öffnen")
+        # Step 2: Download QR code
+        self._download_frame = self._create_qr_frame(
+            "Schritt 2: Fotos öffnen",
+            "📱",
+            "Scanne diesen QR-Code\num deine Fotos\nim Browser zu öffnen\nund herunterzuladen."
+        )
         self._download_qr_label = self._download_frame.findChild(QLabel, "qr_image")
         qr_layout.addWidget(self._download_frame)
         
@@ -138,39 +146,64 @@ class ExportWidget(QWidget):
         self._new_session_button.clicked.connect(self._on_new_session)
         layout.addWidget(self._new_session_button, alignment=Qt.AlignCenter)
     
-    def _create_qr_frame(self, title: str) -> QFrame:
-        """Create a QR code display frame."""
+    def _create_qr_frame(self, title: str, icon: str = "",
+                         description: str = "") -> QFrame:
+        """Create a QR code display frame with instructions."""
         frame = QFrame()
         frame.setStyleSheet("""
             QFrame {
                 background-color: white;
                 border-radius: 20px;
-                padding: 20px;
+                padding: 15px;
             }
         """)
         frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        frame.setMaximumSize(350, 400)
+        frame.setMaximumSize(400, 500)
         
         layout = QVBoxLayout(frame)
         layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(8)
+        
+        # Icon
+        if icon:
+            icon_label = QLabel(icon)
+            icon_label.setStyleSheet("font-size: 40px; background: transparent;")
+            icon_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(icon_label)
         
         # Title
         title_label = QLabel(title)
         title_label.setStyleSheet("""
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
             color: #333;
+            background: transparent;
         """)
         title_label.setAlignment(Qt.AlignCenter)
+        title_label.setWordWrap(True)
         layout.addWidget(title_label)
         
         # QR image
         qr_label = QLabel()
         qr_label.setObjectName("qr_image")
-        qr_label.setFixedSize(250, 250)
+        qr_label.setFixedSize(220, 220)
         qr_label.setAlignment(Qt.AlignCenter)
-        qr_label.setStyleSheet("background-color: #EEE; border-radius: 10px;")
-        layout.addWidget(qr_label)
+        qr_label.setStyleSheet(
+            "background-color: #EEE; border-radius: 10px;"
+        )
+        layout.addWidget(qr_label, alignment=Qt.AlignCenter)
+        
+        # Description
+        if description:
+            desc_label = QLabel(description)
+            desc_label.setStyleSheet("""
+                font-size: 13px;
+                color: #666;
+                background: transparent;
+            """)
+            desc_label.setAlignment(Qt.AlignCenter)
+            desc_label.setWordWrap(True)
+            layout.addWidget(desc_label)
         
         return frame
     

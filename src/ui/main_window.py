@@ -1,5 +1,7 @@
 """
 Main window for the photo booth application.
+Inspired by self-o-mat's GUI state machine:
+  INIT → LIVE_PREVIEW → COUNTDOWN → CAPTURE → FINAL_IMAGE → QR_EXPORT → LIVE_PREVIEW
 """
 
 import logging
@@ -28,6 +30,11 @@ class MainWindow(QMainWindow):
     """
     Main application window for the photo booth.
     Manages different views: preview, gallery, export.
+    
+    State machine inspired by self-o-mat's BoothLogic:
+    - Preview: Live camera feed with capture button
+    - Gallery: View captured photos, take more, or finish
+    - Export: QR codes for WiFi + download
     """
     
     # View indices
@@ -53,6 +60,7 @@ class MainWindow(QMainWindow):
         
         self._preview_timer: Optional[QTimer] = None
         self._idle_timer: Optional[QTimer] = None
+        self._capturing = False
         
         self._setup_ui()
         self._setup_timers()
@@ -62,15 +70,7 @@ class MainWindow(QMainWindow):
         # Window settings
         self.setWindowTitle("Open-Imagebox Photo Booth")
         
-        # Set fullscreen or windowed
-        if self.display_config.get('fullscreen', True):
-            self.showFullScreen()
-            self.setCursor(Qt.BlankCursor)  # Hide cursor in fullscreen
-        else:
-            resolution = self.display_config.get('resolution', [1024, 600])
-            self.resize(resolution[0], resolution[1])
-        
-        # Dark theme
+        # Dark theme - set before showing
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #1a1a1a;
@@ -110,6 +110,17 @@ class MainWindow(QMainWindow):
         # Start with preview
         self._stack.setCurrentIndex(self.VIEW_PREVIEW)
     
+    def show(self):
+        """Show the window with proper fullscreen/windowed mode."""
+        if self.display_config.get('fullscreen', True):
+            # showFullScreen() internally calls show()
+            self.showFullScreen()
+            self.setCursor(Qt.BlankCursor)
+        else:
+            resolution = self.display_config.get('resolution', [1024, 600])
+            self.resize(resolution[0], resolution[1])
+            super().show()
+    
     def _setup_timers(self):
         """Setup application timers."""
         # Preview update timer
@@ -130,8 +141,16 @@ class MainWindow(QMainWindow):
         self._camera_manager = camera_manager
         if camera_manager and camera_manager.is_connected():
             self._preview_timer.start()
+            logger.info("Camera preview started")
         else:
-            self._preview_widget.set_no_camera_text()
+            self._preview_widget.set_no_camera_text(
+                "Keine Kamera verbunden\n\n"
+                "Bitte Kamera per USB anschließen\n"
+                "und Software neu starten.\n\n"
+                "No camera connected.\n"
+                "Please connect camera via USB\n"
+                "and restart the software."
+            )
     
     def set_controller(self, controller) -> None:
         """Set the photo booth controller instance."""
@@ -164,6 +183,9 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def _on_capture_requested(self):
         """Handle capture request from UI."""
+        if self._capturing:
+            return  # Prevent double-capture
+        
         if self._controller:
             self._controller.trigger_capture()
         else:
@@ -172,6 +194,7 @@ class MainWindow(QMainWindow):
     
     def _start_countdown_and_capture(self):
         """Start countdown and capture (without hardware controller)."""
+        self._capturing = True
         countdown = self.config.get('controller', {}).get('countdown_seconds', 3)
         self._preview_widget.show_countdown(countdown)
         
@@ -180,8 +203,9 @@ class MainWindow(QMainWindow):
     
     def _perform_capture(self):
         """Perform the actual image capture."""
-        if self._camera_manager is None:
-            logger.error("No camera manager available")
+        if self._camera_manager is None or not self._camera_manager.is_connected():
+            logger.error("No camera available for capture")
+            self._capturing = False
             return
         
         # Ensure we have a session
@@ -200,6 +224,7 @@ class MainWindow(QMainWindow):
         
         # Capture image
         result = self._camera_manager.capture_image(filename)
+        self._capturing = False
         
         if result:
             logger.info(f"Photo captured: {result}")
@@ -207,6 +232,12 @@ class MainWindow(QMainWindow):
             # Add to session
             if self._controller:
                 self._controller.add_photo_to_session(result)
+            
+            # Update web server with current session
+            if self._web_server and self._controller:
+                session = self._controller.get_current_session()
+                if session:
+                    self._web_server.set_current_session(session.session_id)
             
             # Add to gallery
             self._gallery_widget.add_photo(result)
@@ -216,15 +247,15 @@ class MainWindow(QMainWindow):
                 self._show_gallery()
         else:
             logger.error("Failed to capture photo")
-            QMessageBox.warning(
-                self,
-                "Fehler",
-                "Foto konnte nicht aufgenommen werden."
-            )
+            self._preview_widget.show_error("Foto konnte nicht aufgenommen werden")
     
     def _show_preview(self):
         """Show preview view."""
         self._stack.setCurrentIndex(self.VIEW_PREVIEW)
+        # Ensure preview timer is running
+        if self._camera_manager and self._camera_manager.is_connected():
+            if not self._preview_timer.isActive():
+                self._preview_timer.start()
     
     def _show_gallery(self):
         """Show gallery view."""
@@ -234,29 +265,27 @@ class MainWindow(QMainWindow):
         """Show export view with QR codes."""
         # Complete the session
         if self._controller:
-            session = self._controller.complete_session()
+            self._controller.complete_session()
         
-        # Setup sharing
-        if self._sharing_manager:
-            sharing_config = self.config.get('sharing', {})
-            
-            # Set WiFi QR code
-            if sharing_config.get('hotspot_enabled', True):
-                ssid = sharing_config.get('hotspot_ssid', 'PhotoBooth')
-                password = sharing_config.get('hotspot_password', 'photos123')
-                self._export_widget.set_wifi_qr(ssid, password)
-            
-            # Set download URL
-            if self._web_server:
-                host = self._web_server.get_host_ip()
-                port = sharing_config.get('web_port', 8080)
-                download_url = f"http://{host}:{port}"
-                self._export_widget.set_download_url(download_url)
-            
-            # Handle OneDrive upload
-            if sharing_config.get('onedrive_enabled', False):
-                self._export_widget.show_onedrive_uploading()
-                # Upload would happen asynchronously
+        # Setup sharing info
+        sharing_config = self.config.get('sharing', {})
+        
+        # Set WiFi QR code
+        if sharing_config.get('hotspot_enabled', True):
+            ssid = sharing_config.get('hotspot_ssid', 'PhotoBooth')
+            password = sharing_config.get('hotspot_password', 'photos123')
+            self._export_widget.set_wifi_qr(ssid, password)
+        
+        # Set download URL
+        if self._web_server:
+            host = self._web_server.get_host_ip()
+            port = sharing_config.get('web_port', 8080)
+            download_url = f"http://{host}:{port}"
+            self._export_widget.set_download_url(download_url)
+        
+        # Handle OneDrive upload
+        if sharing_config.get('onedrive_enabled', False):
+            self._export_widget.show_onedrive_uploading()
         
         self._stack.setCurrentIndex(self.VIEW_EXPORT)
     
@@ -273,8 +302,7 @@ class MainWindow(QMainWindow):
         self._show_preview()
     
     def _on_idle_timeout(self):
-        """Handle idle timeout."""
-        # Return to preview after idle
+        """Handle idle timeout - return to preview after idle."""
         if self._stack.currentIndex() != self.VIEW_PREVIEW:
             self._start_new_session()
     
