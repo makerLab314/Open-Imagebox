@@ -108,7 +108,7 @@ Edit `settings/config.json` to customize:
         "brightness": 255
     },
     "sharing": {
-        "hotspot_enabled": true,
+        "hotspot_enabled": false,
         "hotspot_ssid": "PhotoBooth",
         "hotspot_password": "photos123",
         "web_port": 8080,

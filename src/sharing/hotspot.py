@@ -85,7 +85,13 @@ class HotspotManager:
             ], capture_output=True)
             
             if result.returncode != 0:
-                logger.error(f"Failed to start hostapd: {result.stderr.decode()}")
+                stderr_output = result.stderr.decode()
+                if 'masked' in stderr_output:
+                    logger.warning(
+                        "hostapd service is masked. Run: sudo systemctl unmask hostapd"
+                    )
+                else:
+                    logger.error(f"Failed to start hostapd: {stderr_output}")
                 return False
             
             result = subprocess.run([
