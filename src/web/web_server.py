@@ -452,7 +452,7 @@ class PhotoWebServer:
     
     def _get_session_photos(self) -> List[dict]:
         """
-        Get photos for the current session.
+        Get photos for the current session, or all photos from the latest session.
         
         Returns:
             List of photo info dictionaries
@@ -470,7 +470,20 @@ class PhotoWebServer:
                 if filename.lower().endswith(('.jpg', '.jpeg', '.png')):
                     photos.append({
                         'filename': filename,
-                        'path': os.path.join(session_path, filename)
+                        'path': os.path.join(session_path, filename),
+                        'session': os.path.basename(session_path)
+                    })
+        
+        # If no session photos found, also check the photo directory directly
+        if not photos and os.path.isdir(self._photo_dir):
+            for filename in sorted(os.listdir(self._photo_dir)):
+                filepath = os.path.join(self._photo_dir, filename)
+                if os.path.isfile(filepath) and filename.lower().endswith(
+                        ('.jpg', '.jpeg', '.png')):
+                    photos.append({
+                        'filename': filename,
+                        'path': filepath,
+                        'session': ''
                     })
         
         return photos

@@ -26,7 +26,7 @@
         "idle_color": [0, 100, 255]
     },
     "sharing": {
-        "hotspot_enabled": false,
+        "hotspot_enabled": true,
         "hotspot_ssid": "PhotoBooth",
         "hotspot_password": "photos123",
         "hotspot_interface": "wlan0",
@@ -37,8 +37,8 @@
         "onedrive_folder": "PhotoBooth"
     },
     "storage": {
-        "photo_directory": "/home/pi/photos",
-        "session_directory": "/home/pi/sessions",
+        "photo_directory": "~/photos",
+        "session_directory": "~/sessions",
         "keep_originals": true,
         "jpeg_quality": 95
     },

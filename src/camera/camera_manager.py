@@ -1,8 +1,11 @@
 """
 Camera manager for handling camera connections and operations.
+Based on the camera management approach from self-o-mat.
 """
 
 import logging
+import subprocess
+import time
 from typing import Optional, Any
 
 try:
@@ -21,6 +24,7 @@ class CameraManager:
     """
     Manages camera connections and provides a unified interface.
     Supports automatic reconnection and camera type detection.
+    Inspired by self-o-mat's camera management approach.
     """
     
     def __init__(self, config: dict = None):
@@ -36,6 +40,20 @@ class CameraManager:
         self._reconnect_attempts = 0
         self._max_reconnect_attempts = 5
     
+    def _kill_gphoto2_processes(self):
+        """
+        Kill gPhoto2 background processes that lock the camera.
+        This is essential on Raspberry Pi OS where gvfs auto-mounts cameras.
+        """
+        for proc_name in ('gvfs-gphoto2-volume-monitor', 'gvfsd-gphoto2'):
+            try:
+                subprocess.run(
+                    ['pkill', '-f', proc_name],
+                    capture_output=True, timeout=5
+                )
+            except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+                pass
+    
     def initialize(self) -> bool:
         """
         Initialize and connect to the camera.
@@ -46,6 +64,10 @@ class CameraManager:
         camera_type = self.camera_config.get('type', 'gphoto2')
         
         logger.info(f"Initializing camera (type: {camera_type})")
+        
+        # Kill any processes that might be holding the camera
+        self._kill_gphoto2_processes()
+        time.sleep(0.5)  # Brief delay to let processes die
         
         if camera_type == 'gphoto2':
             self._camera = GPhoto2Camera(self.camera_config)

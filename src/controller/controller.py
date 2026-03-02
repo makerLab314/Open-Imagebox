@@ -190,7 +190,11 @@ class PhotoBoothController:
             self._serial_controller.trigger_flash()
     
     def _on_trigger(self) -> None:
-        """Handle trigger event from hardware button."""
+        """
+        Handle trigger event from hardware button.
+        Note: This runs the countdown and capture in a background thread
+        to avoid blocking the UI. Inspired by self-o-mat's async trigger approach.
+        """
         logger.info("Capture triggered")
         
         # Check if we have room for more photos
@@ -201,18 +205,19 @@ class PhotoBoothController:
             logger.warning("Maximum photos reached for session")
             return
         
-        # Start countdown
+        # Start countdown on hardware LEDs
         self.start_countdown()
         
-        # Wait for countdown (in real implementation, this would be async)
-        time.sleep(self._countdown_seconds)
+        # Run countdown + capture in background thread to avoid blocking UI
+        import threading
+        def _countdown_and_capture():
+            time.sleep(self._countdown_seconds)
+            self.trigger_flash()
+            if self._capture_callback:
+                self._capture_callback()
         
-        # Trigger flash
-        self.trigger_flash()
-        
-        # Call capture callback
-        if self._capture_callback:
-            self._capture_callback()
+        thread = threading.Thread(target=_countdown_and_capture, daemon=True)
+        thread.start()
     
     def _on_ready(self) -> None:
         """Handle ready event from controller."""
