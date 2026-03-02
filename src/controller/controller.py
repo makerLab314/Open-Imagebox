@@ -6,6 +6,7 @@ Coordinates camera, hardware controller, and session management.
 import os
 import time
 import logging
+import threading
 from typing import Callable, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -209,7 +210,6 @@ class PhotoBoothController:
         self.start_countdown()
         
         # Run countdown + capture in background thread to avoid blocking UI
-        import threading
         def _countdown_and_capture():
             time.sleep(self._countdown_seconds)
             self.trigger_flash()

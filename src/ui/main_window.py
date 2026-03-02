@@ -112,8 +112,8 @@ class MainWindow(QMainWindow):
     
     def show(self):
         """Show the window with proper fullscreen/windowed mode."""
-        # Set fullscreen or windowed
         if self.display_config.get('fullscreen', True):
+            # showFullScreen() internally calls show()
             self.showFullScreen()
             self.setCursor(Qt.BlankCursor)
         else:
