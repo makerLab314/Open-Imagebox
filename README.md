@@ -1,92 +1,142 @@
 # Open-Imagebox
 
-A fully-featured photo booth software for Raspberry Pi 3B+, inspired by the [self-o-mat project](https://github.com/xtech/self-o-mat).
+Eine vollwertige Photo-Booth-Software für Raspberry Pi, inspiriert vom [self-o-mat Projekt](https://github.com/xtech/self-o-mat).
+
+A fully-featured photo booth software for Raspberry Pi, inspired by the [self-o-mat project](https://github.com/xtech/self-o-mat).
 
 ## Features
 
-- **Live Preview** - Real-time camera preview on HDMI touchscreen
-- **DSLR Camera Support** - Canon cameras via USB using gPhoto2
-- **Hardware Controller** - Arduino-based trigger button, countdown LED ring light, flash synchronization
-- **Multi-Photo Session** - Take multiple photos per session
-- **Export Options**:
-  - WiFi Hotspot with QR code for mobile photo download
-  - Web UI for browsing and downloading photos
-  - OneDrive cloud upload with shareable QR code
+- **Live Preview** – Echtzeit-Kameravorschau auf HDMI-Display / Real-time camera preview on HDMI display
+- **DSLR-Kamerasteuerung** – Canon-Kameras per USB via gPhoto2 / Canon cameras via USB using gPhoto2
+- **Hardware-Controller** – Arduino-basierter Trigger-Button, LED-Countdown-Ring, Blitz-Synchronisation
+- **Multi-Foto-Sessions** – Mehrere Fotos pro Session aufnehmen
+- **QR-Code Export** – Fotos per WiFi-Hotspot und QR-Code aufs Handy laden
+- **Web-Galerie** – Fotos im Browser ansehen und als ZIP herunterladen
+- **OneDrive-Upload** – Optionaler Cloud-Upload mit teilbarem QR-Code
 
-## Hardware Requirements
+## Hardware
 
-- Raspberry Pi 3B+ (or newer)
-- Canon DSLR Camera (USB connected)
-- HDMI Touchscreen Display
-- Arduino Nano (for controller)
-- LED Ring Light (WS2812B/NeoPixel compatible)
-- Push Button for trigger
-- Optional: External Flash
+### Benötigt / Required
+- Raspberry Pi 3B+ (oder neuer / or newer)
+- Canon DSLR Kamera (USB-Verbindung / USB connected)
+- HDMI Display (Touchscreen empfohlen / recommended)
 
-## Software Requirements
-
-- Python 3.8+
-- gPhoto2
-- Qt5 (PyQt5)
-- Additional Python packages (see requirements.txt)
+### Optional
+- Arduino Nano (für Hardware-Controller / for hardware controller)
+- LED Ring Light (WS2812B/NeoPixel)
+- Taster / Push Button
+- Externer Blitz / External Flash
 
 ## Installation
 
-### Quick Install (Raspberry Pi OS)
+### Schnellinstallation / Quick Install (Raspberry Pi OS)
 
 ```bash
-# Clone the repository
+# Repository klonen / Clone repository
 git clone https://github.com/makerLab314/Open-Imagebox.git
 cd Open-Imagebox
 
-# Run the install script
-./scripts/install.sh
+# Installationsskript ausführen / Run install script
+bash scripts/install.sh
 ```
 
-### Manual Installation
+Das Installationsskript:
+- Installiert alle Systemabhängigkeiten
+- Erstellt eine Python Virtual Environment
+- Stoppt gPhoto2-Hintergrundprozesse (die die Kamera blockieren)
+- Richtet den systemd-Service ein (Auto-Start beim Booten)
+- Konfiguriert optional den WiFi-Hotspot (auf Raspberry Pi)
 
-1. Install system dependencies:
+The installation script:
+- Installs all system dependencies
+- Creates a Python virtual environment
+- Kills gPhoto2 background processes (that block camera access)
+- Sets up the systemd service (auto-start on boot)
+- Optionally configures WiFi hotspot (on Raspberry Pi)
+
+### Nach der Installation / After Installation
+
+1. **Kamera anschließen** – DSLR per USB an den Raspberry Pi anschließen und einschalten
+2. **Konfiguration anpassen** – `nano settings/config.json` (wird automatisch erstellt)
+3. **Starten**:
 
 ```bash
+# Manuell starten / Start manually
+cd Open-Imagebox
+source venv/bin/activate
+python -m src.main
+
+# Oder als Service / Or as a service
+sudo systemctl start open-imagebox
+
+# Status prüfen / Check status
+sudo systemctl status open-imagebox
+
+# Logs ansehen / View logs
+journalctl -u open-imagebox -f
+```
+
+### Manuelle Installation / Manual Installation
+
+Falls das Installationsskript nicht funktioniert:
+
+```bash
+# 1. Systemabhängigkeiten
 sudo apt-get update
 sudo apt-get install -y \
-    python3 python3-pip python3-venv \
+    python3 python3-pip python3-venv python3-pyqt5 \
     gphoto2 libgphoto2-dev \
-    libqt5gui5 python3-pyqt5 \
-    hostapd dnsmasq \
-    qrencode \
-    libzbar0
-```
+    hostapd dnsmasq qrencode libzbar0 \
+    libjpeg-dev libopenjp2-7 libtiff-dev libatlas-base-dev
 
-2. Install Python dependencies:
+# 2. WICHTIG: gPhoto2-Hintergrundprozesse stoppen
+sudo pkill -f gvfs-gphoto2-volume-monitor
+sudo pkill -f gvfsd-gphoto2
 
-```bash
-pip3 install -r requirements.txt
-```
+# 3. Virtual Environment erstellen
+python3 -m venv --system-site-packages venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-3. Configure the software:
-
-```bash
+# 4. Konfiguration
 cp settings/config.example.json settings/config.json
-# Edit settings/config.json to match your setup
+
+# 5. Starten
+python -m src.main
 ```
 
-4. Upload Arduino firmware (optional, for hardware controller):
+## Benutzung / Usage
 
+### Ablauf / Workflow
+1. **Live-Vorschau** wird auf dem Display angezeigt
+2. **Auslösen** – Display berühren, Button drücken, oder Leertaste/Enter
+3. **Countdown** – LED-Ring zeigt Countdown, dann wird das Foto aufgenommen
+4. **Galerie** – Aufgenommene Fotos ansehen, weitere aufnehmen oder „Fertig"
+5. **QR-Code** – Zwei QR-Codes werden angezeigt:
+   - **Schritt 1**: WiFi-QR-Code scannen → Handy verbindet sich mit dem Hotspot
+   - **Schritt 2**: Download-QR-Code scannen → Fotos im Browser öffnen und herunterladen
+
+### Tastaturkürzel / Keyboard Shortcuts
+| Taste / Key | Funktion / Function |
+|---|---|
+| Leertaste / Space | Foto aufnehmen / Capture photo |
+| Enter | Foto aufnehmen / Capture photo |
+| Escape | Vollbild verlassen / Exit fullscreen |
+| F11 | Vollbild umschalten / Toggle fullscreen |
+
+### Kommandozeilenoptionen / Command Line Options
 ```bash
-# Using Arduino IDE or arduino-cli
-arduino-cli upload -p /dev/ttyUSB0 -b arduino:avr:nano arduino/controller/controller.ino
+python -m src.main              # Normal starten
+python -m src.main --windowed   # Im Fenster starten
+python -m src.main --debug      # Debug-Modus
+python -m src.main --demo       # Demo-Modus (ohne Kamera)
+python -m src.main --no-gui     # Headless (nur Web-Server)
+python -m src.main -c /pfad/config.json  # Eigene Konfiguration
 ```
 
-5. Run the photo booth:
+## Konfiguration / Configuration
 
-```bash
-python3 -m src.main
-```
-
-## Configuration
-
-Edit `settings/config.json` to customize:
+Bearbeite `settings/config.json`:
 
 ```json
 {
@@ -99,114 +149,97 @@ Edit `settings/config.json` to customize:
         "resolution": [1024, 600]
     },
     "controller": {
+        "enabled": true,
         "serial_port": "/dev/ttyUSB0",
-        "baud_rate": 115200,
         "countdown_seconds": 3
     },
-    "led": {
-        "num_pixels": 24,
-        "brightness": 255
-    },
     "sharing": {
-        "hotspot_enabled": false,
+        "hotspot_enabled": true,
         "hotspot_ssid": "PhotoBooth",
         "hotspot_password": "photos123",
-        "web_port": 8080,
-        "onedrive_enabled": false
+        "web_port": 8080
     },
     "storage": {
-        "photo_directory": "/home/pi/photos",
-        "session_directory": "/home/pi/sessions"
+        "photo_directory": "~/photos",
+        "session_directory": "~/sessions"
     }
 }
 ```
 
-## Usage
+## Fehlerbehebung / Troubleshooting
 
-1. Start the photo booth software
-2. The live preview will be displayed on the touchscreen
-3. Press the trigger button or touch the screen to start a session
-4. The LED ring will show a countdown before each photo
-5. Take multiple photos as desired
-6. Press "Done" or "Export" when finished
-7. Scan the QR code with your phone to:
-   - Connect to the WiFi hotspot
-   - Download photos via the web interface
-   - Or access photos via OneDrive link
-
-### Manual Trigger (Development Mode)
-
-If you don't have the hardware trigger button and countdown LEDs yet, you can use the manual trigger script:
-
+### Kamera wird nicht erkannt / Camera not detected
 ```bash
-# Activate virtual environment first
-source venv/bin/activate
+# gPhoto2-Prozesse stoppen
+sudo pkill -f gvfs-gphoto2-volume-monitor
+sudo pkill -f gvfsd-gphoto2
 
-# Single capture with countdown
-python3 scripts/trigger_capture.py
-
-# Loop mode - keep capturing on Enter key press
-python3 scripts/trigger_capture.py --loop
-
-# Demo mode (no actual camera required)
-python3 scripts/trigger_capture.py --demo
-
-# Custom output directory and countdown
-python3 scripts/trigger_capture.py --output ~/my_photos --countdown 5
-
-# Debug mode for troubleshooting
-python3 scripts/trigger_capture.py --debug
+# Kamera testen
+gphoto2 --auto-detect
+gphoto2 --summary
 ```
 
-The manual trigger provides:
-- Terminal-based countdown display
-- Support for both single and loop (continuous) capture modes
-- Demo mode for testing without camera hardware
-- Custom output directory and countdown settings
+### Display zeigt kein UI / Display shows no UI
+```bash
+# Status prüfen
+sudo systemctl status open-imagebox
 
-## Hardware Controller Protocol
+# Manuell starten für Fehlerausgabe
+cd Open-Imagebox
+source venv/bin/activate
+python -m src.main --debug
+```
 
-The Arduino controller communicates via serial (115200 baud):
+### Service startet nicht / Service won't start
+```bash
+# Logs prüfen
+journalctl -u open-imagebox -n 50
 
-### Commands from Arduino to Raspberry Pi:
-- `TRIGGER` - Button pressed, start capture sequence
-- `READY` - Controller is ready
+# Service neu laden
+sudo systemctl daemon-reload
+sudo systemctl restart open-imagebox
+```
 
-### Commands from Raspberry Pi to Arduino:
-- `LED:COUNTDOWN:n` - Start countdown animation (n seconds)
-- `LED:FLASH` - Trigger flash
-- `LED:OFF` - Turn off LEDs
-- `LED:IDLE` - Idle animation
+## Hardware-Controller Protokoll / Protocol
 
-## Project Structure
+Arduino-Kommunikation über Serial (115200 Baud):
+
+| Richtung / Direction | Befehl / Command | Beschreibung / Description |
+|---|---|---|
+| Arduino → Pi | `TRIGGER` | Button gedrückt / Button pressed |
+| Arduino → Pi | `READY` | Controller bereit / Controller ready |
+| Pi → Arduino | `LED:COUNTDOWN:n` | Countdown-Animation (n Sekunden) |
+| Pi → Arduino | `LED:FLASH` | Blitz auslösen / Trigger flash |
+| Pi → Arduino | `LED:OFF` | LEDs aus / LEDs off |
+| Pi → Arduino | `LED:IDLE` | Idle-Animation |
+
+## Projektstruktur / Project Structure
 
 ```
 Open-Imagebox/
 ├── src/
-│   ├── main.py              # Main application entry
-│   ├── camera/              # Camera communication (gPhoto2)
-│   ├── controller/          # Arduino serial controller
-│   ├── ui/                  # PyQt5 touchscreen UI
-│   ├── web/                 # Web server for photo download
-│   ├── sharing/             # QR code, hotspot, OneDrive
-│   └── utils/               # Utility functions
-├── arduino/
-│   └── controller/          # Arduino firmware
-├── settings/
-│   ├── config.example.json  # Example configuration
-│   └── config.json          # User configuration
+│   ├── main.py              # Hauptprogramm / Main entry point
+│   ├── camera/              # Kamera-Steuerung / Camera control (gPhoto2)
+│   ├── controller/          # Hardware-Controller (Arduino)
+│   ├── ui/                  # PyQt5 Display-UI
+│   ├── web/                 # Web-Server für Foto-Download
+│   ├── sharing/             # QR-Code, Hotspot, OneDrive
+│   └── utils/               # Konfiguration, Logging
 ├── scripts/
-│   ├── install.sh           # Installation script
-│   ├── setup_hotspot.sh     # WiFi hotspot setup
-│   └── trigger_capture.py   # Manual capture trigger (development)
-├── docs/                    # Documentation
-└── requirements.txt         # Python dependencies
+│   ├── install.sh           # Installationsskript
+│   ├── setup_hotspot.sh     # WiFi-Hotspot-Setup
+│   └── trigger_capture.py   # Manueller Auslöser (Entwicklung)
+├── settings/
+│   ├── config.example.json  # Beispiel-Konfiguration
+│   └── config.json          # Benutzerkonfiguration (erstellt bei Installation)
+├── docs/                    # Dokumentation
+└── requirements.txt         # Python-Abhängigkeiten
 ```
 
-## License
+## Lizenz / License
 
-GNU General Public License v3.0 - see [LICENSE](LICENSE)
+GNU General Public License v3.0 – siehe [LICENSE](LICENSE)
 
 ## Credits
 
-Inspired by the [self-o-mat project](https://github.com/xtech/self-o-mat).
+Inspiriert vom [self-o-mat Projekt](https://github.com/xtech/self-o-mat) von [xtech](https://github.com/xtech).

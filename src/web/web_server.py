@@ -276,10 +276,6 @@ class PhotoWebServer:
         Args:
             config: Configuration dictionary
         """
-        if not FLASK_AVAILABLE:
-            logger.error("Flask not available. Install with: pip install flask flask-cors")
-            return
-        
         self.config = config or {}
         self.sharing_config = self.config.get('sharing', {})
         self.storage_config = self.config.get('storage', {})
@@ -292,7 +288,10 @@ class PhotoWebServer:
         self._server_thread: Optional[threading.Thread] = None
         self._current_session_id: Optional[str] = None
         
-        self._setup_app()
+        if FLASK_AVAILABLE:
+            self._setup_app()
+        else:
+            logger.error("Flask not available. Install with: pip install flask flask-cors")
     
     def _setup_app(self):
         """Setup Flask application."""
