@@ -49,7 +49,7 @@ sudo apt-get install -y \
 echo ""
 echo "[3/7] Creating Python virtual environment..."
 cd "$PROJECT_DIR"
-python3 -m venv venv
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
 
 # Install Python dependencies
