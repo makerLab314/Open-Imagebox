@@ -29,7 +29,7 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 CURRENT_USER="$(whoami)"
-HOME_DIR="$(eval echo ~$CURRENT_USER)"
+HOME_DIR="$(getent passwd "$CURRENT_USER" | cut -d: -f6)"
 
 echo ""
 echo "=============================================="
@@ -90,6 +90,8 @@ UDEV_RULE="/etc/udev/rules.d/99-photobooth-camera.rules"
 if [ ! -f "$UDEV_RULE" ]; then
     sudo tee "$UDEV_RULE" > /dev/null << 'UDEV_EOF'
 # Prevent gvfs from claiming the camera for Open-Imagebox
+# Note: Vendor ID 04a9 is Canon-specific. Adjust for other manufacturers:
+#   Nikon: 04b0, Sony: 054c, Fujifilm: 04cb
 ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="04a9", TAG-="gphoto2"
 UDEV_EOF
     sudo udevadm control --reload-rules 2>/dev/null || true
@@ -113,7 +115,7 @@ source venv/bin/activate
 
 # ─── Step 5: Python Dependencies ─────────────────────────────────────
 step "[5/8] Python-Abhängigkeiten installieren / Installing Python dependencies..."
-pip install --upgrade pip setuptools wheel 2>/dev/null
+pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt || {
     error "Python-Abhängigkeiten konnten nicht installiert werden!"
     exit 1
