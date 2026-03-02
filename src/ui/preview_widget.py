@@ -7,12 +7,12 @@ from typing import Optional
 import numpy as np
 
 try:
-    from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout
-    from PyQt6.QtCore import Qt, QTimer, pyqtSignal
-    from PyQt6.QtGui import QImage, QPixmap
-    PYQT6_AVAILABLE = True
+    from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout, QPushButton, QHBoxLayout
+    from PyQt5.QtCore import Qt, QTimer, pyqtSignal
+    from PyQt5.QtGui import QImage, QPixmap
+    PYQT5_AVAILABLE = True
 except ImportError:
-    PYQT6_AVAILABLE = False
+    PYQT5_AVAILABLE = False
     QWidget = object
 
 
@@ -26,11 +26,11 @@ class PreviewWidget(QWidget):
     """
     
     # Signal emitted when capture is requested
-    capture_requested = pyqtSignal() if PYQT6_AVAILABLE else None
+    capture_requested = pyqtSignal() if PYQT5_AVAILABLE else None
     
     def __init__(self, parent=None):
-        if not PYQT6_AVAILABLE:
-            logger.error("PyQt6 not available")
+        if not PYQT5_AVAILABLE:
+            logger.error("PyQt5 not available")
             return
         
         super().__init__(parent)
@@ -46,14 +46,14 @@ class PreviewWidget(QWidget):
         
         # Preview image label
         self._preview_label = QLabel()
-        self._preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._preview_label.setAlignment(Qt.AlignCenter)
         self._preview_label.setStyleSheet("background-color: black;")
         self._preview_label.setMinimumSize(640, 480)
         layout.addWidget(self._preview_label, 1)
         
         # Countdown overlay label
         self._countdown_label = QLabel()
-        self._countdown_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._countdown_label.setAlignment(Qt.AlignCenter)
         self._countdown_label.setStyleSheet("""
             QLabel {
                 color: white;
@@ -119,15 +119,15 @@ class PreviewWidget(QWidget):
                 width,
                 height,
                 bytes_per_line,
-                QImage.Format.Format_RGB888
+                QImage.Format_RGB888
             )
             
             # Scale to fit label while maintaining aspect ratio
             pixmap = QPixmap.fromImage(q_image)
             scaled_pixmap = pixmap.scaled(
                 self._preview_label.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
             )
             
             self._preview_label.setPixmap(scaled_pixmap)

@@ -106,7 +106,7 @@ def main():
             logger.info("Starting GUI...")
             
             try:
-                from PyQt6.QtWidgets import QApplication
+                from PyQt5.QtWidgets import QApplication
                 from src.ui import MainWindow
                 
                 app = QApplication(sys.argv)
@@ -129,11 +129,11 @@ def main():
                 signal.signal(signal.SIGTERM, signal_handler)
                 
                 # Run application
-                sys.exit(app.exec())
+                sys.exit(app.exec_())
                 
             except ImportError as e:
-                logger.error(f"PyQt6 not available: {e}")
-                logger.info("Install PyQt6: pip install PyQt6")
+                logger.error(f"PyQt5 not available: {e}")
+                logger.info("Install PyQt5: pip install PyQt5")
                 sys.exit(1)
         else:
             # Headless mode - just run the web server

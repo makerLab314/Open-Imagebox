@@ -121,7 +121,8 @@ class GPhoto2Camera(CameraBase):
         
         try:
             # Capture preview image
-            camera_file = self._camera.capture_preview(self._context)
+            camera_file = gp.CameraFile()
+            self._camera.capture_preview(camera_file, self._context)
             
             # Get file data
             file_data = camera_file.get_data_and_size()

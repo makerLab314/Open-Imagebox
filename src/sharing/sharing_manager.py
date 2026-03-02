@@ -45,11 +45,10 @@ class SharingManager:
         success = True
         
         # Initialize hotspot if enabled
-        if self.sharing_config.get('hotspot_enabled', True):
+        if self.sharing_config.get('hotspot_enabled', False):
             self._hotspot = HotspotManager(self.config)
             if not self._hotspot.start():
-                logger.warning("Failed to start hotspot")
-                success = False
+                logger.warning("Failed to start hotspot - continuing without hotspot")
         
         # Initialize OneDrive if configured
         if self.sharing_config.get('onedrive_enabled', False):
