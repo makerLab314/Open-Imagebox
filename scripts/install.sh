@@ -65,7 +65,7 @@ sudo apt-get install -y \
     libjpeg-dev \
     libopenjp2-7 \
     libtiff-dev \
-    libatlas-base-dev \
+    libopenblas-dev \
     || {
     error "Paketinstallation fehlgeschlagen!"
     error "Package installation failed!"
