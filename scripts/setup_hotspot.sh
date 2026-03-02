@@ -32,13 +32,28 @@ sudo systemctl stop dnsmasq 2>/dev/null || true
 sudo cp /etc/hostapd/hostapd.conf /etc/hostapd/hostapd.conf.backup 2>/dev/null || true
 sudo cp /etc/dnsmasq.conf /etc/dnsmasq.conf.backup 2>/dev/null || true
 
-# Configure static IP for interface
+# Configure network interface - detect NetworkManager vs dhcpcd
 echo "Configuring network interface..."
-sudo tee /etc/dhcpcd.conf.d/photobooth.conf > /dev/null << EOF
+if systemctl is-active --quiet NetworkManager; then
+    # NetworkManager-based systems (Debian Trixie+)
+    echo "Detected NetworkManager - using nmcli..."
+    nmcli connection delete PhotoBooth 2>/dev/null || true
+    nmcli connection add type wifi ifname "$INTERFACE" con-name PhotoBooth \
+        autoconnect no ssid "$SSID" \
+        wifi-sec.key-mgmt wpa-psk wifi-sec.psk "$PASSWORD" \
+        ipv4.method shared ipv4.addresses 192.168.4.1/24
+    nmcli connection up PhotoBooth || echo "Warning: Could not activate PhotoBooth connection. Check 'nmcli connection show PhotoBooth' for details."
+elif [ -d /etc/dhcpcd.conf.d ]; then
+    # Legacy dhcpcd approach (Bullseye/Bookworm)
+    sudo tee /etc/dhcpcd.conf.d/photobooth.conf > /dev/null << EOF
 interface $INTERFACE
     static ip_address=192.168.4.1/24
     nohook wpa_supplicant
 EOF
+else
+    echo "Warning: Neither NetworkManager nor dhcpcd found. Skipping static IP configuration."
+    echo "         You may need to configure the network interface manually."
+fi
 
 # Configure hostapd
 echo "Configuring hostapd..."
@@ -88,7 +103,9 @@ echo "  Password: $PASSWORD"
 echo "  IP:       192.168.4.1"
 echo ""
 echo "Reboot for changes to take effect, or run:"
-echo "  sudo systemctl restart dhcpcd"
 echo "  sudo systemctl start hostapd"
 echo "  sudo systemctl start dnsmasq"
+if ! systemctl is-active --quiet NetworkManager; then
+    echo "  sudo systemctl restart dhcpcd"
+fi
 echo ""

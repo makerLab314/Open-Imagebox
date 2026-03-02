@@ -87,7 +87,7 @@ sudo apt-get install -y \
     python3 python3-pip python3-venv python3-pyqt5 \
     gphoto2 libgphoto2-dev \
     hostapd dnsmasq qrencode libzbar0 \
-    libjpeg-dev libopenjp2-7 libtiff-dev libatlas-base-dev
+    libjpeg-dev libopenjp2-7 libtiff-dev libopenblas-dev
 
 # 2. WICHTIG: gPhoto2-Hintergrundprozesse stoppen
 sudo pkill -f gvfs-gphoto2-volume-monitor
