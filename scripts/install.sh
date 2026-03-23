@@ -72,6 +72,17 @@ sudo apt-get install -y \
     exit 1
 }
 
+# Optional: Chromium for kiosk mode
+step "[2b/8] Chromium installieren (optional) / Installing Chromium (optional)..."
+if sudo apt-get install -y chromium-browser 2>/dev/null; then
+    info "chromium-browser installiert"
+elif sudo apt-get install -y chromium 2>/dev/null; then
+    info "chromium installiert"
+else
+    warn "Chromium konnte nicht installiert werden."
+    warn "Chromium could not be installed (kiosk mode may be unavailable)."
+fi
+
 # ─── Step 3: Kill interfering gphoto2 processes ──────────────────────
 step "[3/8] gPhoto2 Hintergrundprozesse stoppen / Stopping gPhoto2 background processes..."
 # gvfs-gphoto2-volume-monitor and gvfsd-gphoto2 lock the camera
@@ -180,7 +191,7 @@ Environment=PYTHONDONTWRITEBYTECODE=1
 Environment=PYTHONPATH=$PROJECT_DIR
 ExecStartPre=/bin/bash -c 'pkill -f gvfs-gphoto2-volume-monitor || true'
 ExecStartPre=/bin/bash -c 'pkill -f gvfsd-gphoto2 || true'
-ExecStart=$PROJECT_DIR/venv/bin/python -m src.main
+ExecStart=/bin/bash $PROJECT_DIR/scripts/start.sh
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -190,6 +201,7 @@ StandardError=journal
 WantedBy=graphical.target
 EOF
 
+chmod +x "$PROJECT_DIR/scripts/start.sh"
 sudo systemctl daemon-reload
 sudo systemctl enable open-imagebox.service
 info "Systemd-Service erstellt und aktiviert"
@@ -230,7 +242,7 @@ echo "│     Start Photo Booth:                      │"
 echo "│                                             │"
 echo "│     cd $PROJECT_DIR"
 echo "│     source venv/bin/activate                │"
-echo "│     python -m src.main                      │"
+echo "│     bash scripts/start.sh                   │"
 echo "│                                             │"
 echo "│  Oder automatisch beim Booten:              │"
 echo "│  Or start automatically on boot:            │"

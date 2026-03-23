@@ -76,6 +76,18 @@ sudo systemctl status open-imagebox
 journalctl -u open-imagebox -f
 ```
 
+### Auto Mode (Kiosk mit Chromium) / Auto Mode (Chromium Kiosk)
+
+```bash
+# Startscript ausführen (startet App + Chromium im Kioskmodus)
+cd Open-Imagebox
+bash scripts/start.sh
+
+# Als Service (Auto-Start beim Booten)
+sudo systemctl enable open-imagebox
+sudo systemctl start open-imagebox
+```
+
 ### Manuelle Installation / Manual Installation
 
 Falls das Installationsskript nicht funktioniert:
@@ -103,6 +115,9 @@ cp settings/config.example.json settings/config.json
 
 # 5. Starten
 python -m src.main
+
+# 6. Auto Mode (optional)
+bash scripts/start.sh
 ```
 
 ## Benutzung / Usage

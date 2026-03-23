@@ -30,7 +30,14 @@ cd Open-Imagebox
 
 1. Kamera per USB an den Raspberry Pi anschließen
 2. Kamera einschalten
-3. Software starten: `python -m src.main`
+3. Software starten: `bash scripts/start.sh`
+
+### Auto Mode (Kiosk)
+
+```bash
+sudo systemctl enable open-imagebox
+sudo systemctl start open-imagebox
+```
 
 ### Fotos aufnehmen
 

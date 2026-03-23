@@ -4,17 +4,24 @@ Provides a simple web UI for browsing and downloading photos.
 """
 
 import os
+import io
 import socket
 import logging
 import threading
 from typing import Optional, List
 
 try:
-    from flask import Flask, render_template_string, send_file, jsonify, url_for
+    from flask import Flask, render_template_string, send_file, jsonify, request
     from flask_cors import CORS
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
+
+try:
+    import qrcode
+    QRCODE_AVAILABLE = True
+except ImportError:
+    QRCODE_AVAILABLE = False
 
 
 logger = logging.getLogger(__name__)
@@ -61,6 +68,29 @@ GALLERY_TEMPLATE = """
         header p {
             color: #888;
             font-size: 1.1em;
+        }
+
+        .header-qr {
+            margin-top: 20px;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .header-qr img {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 10px;
+            padding: 8px;
+            display: block;
+            margin: 0 auto 8px auto;
+        }
+
+        .header-qr p {
+            color: #bbb;
+            font-size: 0.95em;
         }
         
         .gallery {
@@ -198,6 +228,12 @@ GALLERY_TEMPLATE = """
         <header>
             <h1>📸 Photo Booth</h1>
             <p>{{ photo_count }} Foto{% if photo_count != 1 %}s{% endif %} aufgenommen</p>
+            {% if qr_available %}
+            <div class="header-qr">
+                <img src="/webui-qr" alt="QR-Code für Download-WebUI">
+                <p>QR-Code für Download-WebUI</p>
+            </div>
+            {% endif %}
         </header>
         
         {% if photos %}
@@ -309,7 +345,8 @@ class PhotoWebServer:
             return render_template_string(
                 GALLERY_TEMPLATE,
                 photos=photos,
-                photo_count=len(photos)
+                photo_count=len(photos),
+                qr_available=QRCODE_AVAILABLE
             )
         
         @self._app.route('/api/photos')
@@ -351,7 +388,6 @@ class PhotoWebServer:
         def download_all():
             """Download all photos as ZIP."""
             import zipfile
-            import io
             
             photos = self._get_session_photos()
             if not photos:
@@ -373,6 +409,28 @@ class PhotoWebServer:
                 as_attachment=True,
                 download_name='photobooth_photos.zip'
             )
+
+        @self._app.route('/webui-qr')
+        def webui_qr():
+            """Generate QR code for current WebUI URL."""
+            if not QRCODE_AVAILABLE:
+                return 'QR code generation not available', 503
+
+            target_url = request.url_root.rstrip('/')
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=2,
+            )
+            qr.add_data(target_url)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            buffer.seek(0)
+            return send_file(buffer, mimetype='image/png')
     
     def start(self) -> bool:
         """
