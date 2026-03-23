@@ -201,9 +201,9 @@ StandardError=journal
 WantedBy=graphical.target
 EOF
 
+chmod +x "$PROJECT_DIR/scripts/start.sh"
 sudo systemctl daemon-reload
 sudo systemctl enable open-imagebox.service
-chmod +x "$PROJECT_DIR/scripts/start.sh"
 info "Systemd-Service erstellt und aktiviert"
 
 # ─── Optional: Hotspot Setup ─────────────────────────────────────────
